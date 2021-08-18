@@ -12,7 +12,9 @@ def contrastive_loss(out_1, out_2):
     out_2 = F.normalize(out_2, dim=-1)
     bs = out_1.size(0)
     temp = 0.25
+
     # [2*B, D]
+    # cat: concatenates the given sequence of seq tensors in the given dimension
     out = torch.cat([out_1, out_2], dim=0)
     # [2*B, 2*B]
     sim_matrix = torch.exp(torch.mm(out, out.t().contiguous()) / temp)
@@ -45,7 +47,7 @@ def train_model(model, train_loader, test_loader, train_loader_1, device, args):
 
 def run_epoch(model, train_loader, optimizer, center, device):
     total_loss, total_num = 0.0, 0
-    for ((img1, img2), _) in tqdm(train_loader, desc='Train...'):
+    for ((img1, img2), _) in tqdm(train_loader, desc='Train...'): # tqdm = progress bar
 
         img1, img2 = img1.to(device), img2.to(device)
 
