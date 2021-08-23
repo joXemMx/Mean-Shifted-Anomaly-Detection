@@ -8,6 +8,9 @@ import torch.nn.functional as F
 from PIL import ImageFilter
 import random
 
+import CustomDataset
+
+
 class GaussianBlur(object):
     """Gaussian blur augmentation in SimCLR https://arxiv.org/abs/2002.05709"""
 
@@ -38,7 +41,8 @@ transform_color = transforms.Compose([
     # Normalize a tensor image with mean and standard deviation. This transform does not support PIL Image.
     # Given mean: (mean[1],...,mean[n]) and std: (std[1],..,std[n]) for n channels, this transform will normalize
     # each channel of the input.
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+    # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+    transforms.Normalize(mean=[0.382, 0.299, 0.62], std=[0.059, 0.052, 0.071])])
 
 
 moco_transform = transforms.Compose([
@@ -64,7 +68,7 @@ moco_transform = transforms.Compose([
         GaussianBlur([.1, 2.])
     ], p=0.5),
 
-    # Horizontally flip the given image randomly with a given probability.
+    # Horizontally flip the given image randomly with a given probability. Default value is 0.5.
     transforms.RandomHorizontalFlip(),
 
     transforms.ToTensor(),
@@ -139,12 +143,40 @@ def get_loaders(dataset, label_class, batch_size):
         trainset = ds(root='data', train=True, download=True, transform=transform, **coarse)
         testset = ds(root='data', train=False, download=True, transform=transform, **coarse)
         trainset_1 = ds(root='data', train=True, download=True, transform=Transform(), **coarse)
+
+        # True where target is part of wanted label_class, False else
         idx = np.array(trainset.targets) == label_class
+
+        # 0 where target class is label_class, 1 else
         testset.targets = [int(t != label_class) for t in testset.targets]
+
+        # take the train data from the indexes where the label is the one of label_class
+        # thereby cuts len(trainset.data) from 50.000 to 5.000, as there are 10 sets equally distributed
         trainset.data = trainset.data[idx]
+
+        # targets are of the label class
         trainset.targets = [trainset.targets[i] for i, flag in enumerate(idx, 0) if flag]
+
+        # again: data where label == label_class, targets are label_class
         trainset_1.data = trainset_1.data[idx]
         trainset_1.targets = [trainset_1.targets[i] for i, flag in enumerate(idx, 0) if flag]
+
+        train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=2,
+                                                   drop_last=False)
+        test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2,
+                                                  drop_last=False)
+        return train_loader, test_loader, torch.utils.data.DataLoader(trainset_1, batch_size=batch_size,
+                                                                      shuffle=True, num_workers=2, drop_last=False)
+    if dataset == 'custom':
+        test_path = 'E:\\parralelcomputed_trackdata\\Heatmaps_test\\'
+        train_path = 'E:\\parralelcomputed_trackdata\\Heatmaps_train_noc\\'
+        transform = transform_color
+        testset = CustomDataset.create_dataset(test_path, transforms=transform)
+        trainset = CustomDataset.create_dataset(train_path, transforms=transform)
+        trainset_1 = CustomDataset.create_dataset(train_path, transforms=Transform())
+
+        idx = np.array(trainset.targets) == label_class
+        testset.targets = [int(t != label_class) for t in testset.targets]
         train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=2,
                                                    drop_last=False)
         test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2,

@@ -47,7 +47,7 @@ def train_model(model, train_loader, test_loader, train_loader_1, device, args):
 
 def run_epoch(model, train_loader, optimizer, center, device):
     total_loss, total_num = 0.0, 0
-    for ((img1, img2), _) in tqdm(train_loader, desc='Train...'): # tqdm = progress bar
+    for ((img1, img2), _) in tqdm(train_loader, desc='Train...'):   # tqdm = progress bar
 
         img1, img2 = img1.to(device), img2.to(device)
 
