@@ -110,7 +110,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('--dataset', default='cifar10')
+    parser.add_argument('--dataset', default='custom')
     parser.add_argument('--epochs', default=100, type=int, metavar='epochs', help='number of epochs')
     parser.add_argument('--label', default=0, type=int, help='The normal class')
     parser.add_argument('--lr', type=float, default=1e-5, help='The initial learning rate.')

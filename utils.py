@@ -141,40 +141,42 @@ def knn_score(train_set, test_set, n_neighbours=2):
 
 
 def get_loaders(dataset, label_class, batch_size):
-    if dataset == "cifar10":
-        ds = torchvision.datasets.CIFAR10
-        transform = transform_color
-        coarse = {}
-        trainset = ds(root='data', train=True, download=True, transform=transform, **coarse)
-        testset = ds(root='data', train=False, download=True, transform=transform, **coarse)
-        trainset_1 = ds(root='data', train=True, download=True, transform=Transform(), **coarse)
 
-        # True where target is part of wanted label_class, False else
-        idx = np.array(trainset.targets) == label_class
+    # if dataset == "cifar10":
+    #     ds = torchvision.datasets.CIFAR10
+    #     transform = transform_color
+    #     coarse = {}
+    #     trainset = ds(root='data', train=True, download=True, transform=transform, **coarse)
+    #     testset = ds(root='data', train=False, download=True, transform=transform, **coarse)
+    #     trainset_1 = ds(root='data', train=True, download=True, transform=Transform(), **coarse)
+    #
+    #     # True where target is part of wanted label_class, False else
+    #     idx = np.array(trainset.targets) == label_class
+    #
+    #     # 0 where target class is label_class, 1 else
+    #     testset.targets = [int(t != label_class) for t in testset.targets]
+    #
+    #     # take the train data from the indexes where the label is the one of label_class
+    #     # thereby cuts len(trainset.data) from 50.000 to 5.000, as there are 10 sets equally distributed
+    #     trainset.data = trainset.data[idx]
+    #
+    #     # targets are of the label class
+    #     trainset.targets = [trainset.targets[i] for i, flag in enumerate(idx, 0) if flag]
+    #
+    #     # again: data where label == label_class, targets are label_class
+    #     trainset_1.data = trainset_1.data[idx]
+    #     trainset_1.targets = [trainset_1.targets[i] for i, flag in enumerate(idx, 0) if flag]
+    #
+    #     train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=2,
+    #                                                drop_last=False)
+    #     test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2,
+    #                                               drop_last=False)
+    #     return train_loader, test_loader, torch.utils.data.DataLoader(trainset_1, batch_size=batch_size,
+    #                                                                   shuffle=True, num_workers=2, drop_last=False)
 
-        # 0 where target class is label_class, 1 else
-        testset.targets = [int(t != label_class) for t in testset.targets]
-
-        # take the train data from the indexes where the label is the one of label_class
-        # thereby cuts len(trainset.data) from 50.000 to 5.000, as there are 10 sets equally distributed
-        trainset.data = trainset.data[idx]
-
-        # targets are of the label class
-        trainset.targets = [trainset.targets[i] for i, flag in enumerate(idx, 0) if flag]
-
-        # again: data where label == label_class, targets are label_class
-        trainset_1.data = trainset_1.data[idx]
-        trainset_1.targets = [trainset_1.targets[i] for i, flag in enumerate(idx, 0) if flag]
-
-        train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=2,
-                                                   drop_last=False)
-        test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2,
-                                                  drop_last=False)
-        return train_loader, test_loader, torch.utils.data.DataLoader(trainset_1, batch_size=batch_size,
-                                                                      shuffle=True, num_workers=2, drop_last=False)
     if dataset == 'custom':
-        test_path = 'E:\\parralelcomputed_trackdata\\Heatmaps_test\\'
-        train_path = 'E:\\parralelcomputed_trackdata\\Heatmaps_train_norm\\'
+        test_path = '...'
+        train_path = '...'
         transform = transform_color
         testset = CustomDataset.create_dataset(test_path, transforms=transform)
         trainset = CustomDataset.create_dataset(train_path, transforms=transform)
