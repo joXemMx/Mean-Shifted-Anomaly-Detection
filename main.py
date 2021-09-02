@@ -92,8 +92,6 @@ def get_score(model, device, train_loader, test_loader):
         test_labels = torch.cat(test_labels, dim=0).cpu().numpy()
 
     distances = utils.knn_score(train_feature_space, test_feature_space)
-    print(test_labels)
-    print(distances)
     auc = roc_auc_score(test_labels, distances)
 
     return auc, train_feature_space
