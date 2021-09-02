@@ -5,10 +5,14 @@ import numpy as np
 import faiss
 import torchvision.models as models
 import torch.nn.functional as F
+from torch.utils.data import DataLoader
 from PIL import ImageFilter
 import random
-
 import CustomDataset
+
+# include mean and std from CustomDataset.ipynb here
+mean = [0.249, 0.292, 0.734]
+std = [0.075, 0.035, 0.079]
 
 
 class GaussianBlur(object):
@@ -21,6 +25,7 @@ class GaussianBlur(object):
         sigma = random.uniform(self.sigma[0], self.sigma[1])
         x = x.filter(ImageFilter.GaussianBlur(radius=sigma))
         return x
+
 
 # do transformations on the image data
 transform_color = transforms.Compose([
@@ -42,8 +47,7 @@ transform_color = transforms.Compose([
     # Given mean: (mean[1],...,mean[n]) and std: (std[1],..,std[n]) for n channels, this transform will normalize
     # each channel of the input.
     # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
-    transforms.Normalize(mean=[0.382, 0.299, 0.62], std=[0.059, 0.052, 0.071])])
-
+    transforms.Normalize(mean=mean, std=std)])
 
 moco_transform = transforms.Compose([
 
@@ -72,7 +76,7 @@ moco_transform = transforms.Compose([
     transforms.RandomHorizontalFlip(),
 
     transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
+    transforms.Normalize(mean=mean, std=std)])
 
 
 class Transform:
@@ -86,7 +90,7 @@ class Transform:
             transforms.RandomApply([GaussianBlur([.1, 2.])], p=0.5),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
+            transforms.Normalize(mean=mean, std=std)])
 
     def __call__(self, x):
         x_1 = self.moco_transform(x)
@@ -108,6 +112,7 @@ class Model(torch.nn.Module):
         z1 = self.backbone(x)
         z_n = F.normalize(z1, dim=-1)
         return z_n
+
 
 def freeze_parameters(model, train_fc=False):
     for p in model.conv1.parameters():
@@ -169,20 +174,20 @@ def get_loaders(dataset, label_class, batch_size):
                                                                       shuffle=True, num_workers=2, drop_last=False)
     if dataset == 'custom':
         test_path = 'E:\\parralelcomputed_trackdata\\Heatmaps_test\\'
-        train_path = 'E:\\parralelcomputed_trackdata\\Heatmaps_train_noc\\'
+        train_path = 'E:\\parralelcomputed_trackdata\\Heatmaps_train_norm\\'
         transform = transform_color
         testset = CustomDataset.create_dataset(test_path, transforms=transform)
         trainset = CustomDataset.create_dataset(train_path, transforms=transform)
         trainset_1 = CustomDataset.create_dataset(train_path, transforms=Transform())
+        # print(testset.targets)
 
-        idx = np.array(trainset.targets) == label_class
-        testset.targets = [int(t != label_class) for t in testset.targets]
-        train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=2,
-                                                   drop_last=False)
-        test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2,
-                                                  drop_last=False)
-        return train_loader, test_loader, torch.utils.data.DataLoader(trainset_1, batch_size=batch_size,
-                                                                      shuffle=True, num_workers=2, drop_last=False)
+        # testset.targets = [int(t != label_class) for t in testset.targets]
+        train_loader = DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=2,
+                                  drop_last=False)
+        test_loader = DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2,
+                                 drop_last=False)
+        return train_loader, test_loader, DataLoader(trainset_1, batch_size=batch_size,
+                                                     shuffle=True, num_workers=2, drop_last=False)
     else:
         print('Unsupported Dataset')
         exit()

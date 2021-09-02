@@ -43,6 +43,7 @@ def train_model(model, train_loader, test_loader, train_loader_1, device, args):
         print('Epoch: {}, Loss: {}'.format(epoch + 1, running_loss))
         auc, _ = get_score(model, device, train_loader, test_loader)
         print('Epoch: {}, AUROC is: {}'.format(epoch + 1, auc))
+    # torch.save(model.state_dict(), 'state_dict_MSAD_norm_train_norm_test.pt')
 
 
 def run_epoch(model, train_loader, optimizer, center, device):
@@ -74,7 +75,7 @@ def run_epoch(model, train_loader, optimizer, center, device):
 def get_score(model, device, train_loader, test_loader):
     train_feature_space = []
     with torch.no_grad():
-        for (imgs, _) in tqdm(train_loader, desc='Train set feature extracting'):
+        for (imgs, labels) in tqdm(train_loader, desc='Train set feature extracting'):
             imgs = imgs.to(device)
             features = model(imgs)
             train_feature_space.append(features)
@@ -91,10 +92,12 @@ def get_score(model, device, train_loader, test_loader):
         test_labels = torch.cat(test_labels, dim=0).cpu().numpy()
 
     distances = utils.knn_score(train_feature_space, test_feature_space)
-
+    print(test_labels)
+    print(distances)
     auc = roc_auc_score(test_labels, distances)
 
     return auc, train_feature_space
+
 
 def main(args):
     print('Dataset: {}, Normal Label: {}, LR: {}'.format(args.dataset, args.label, args.lr))

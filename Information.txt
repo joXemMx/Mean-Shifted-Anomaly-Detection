@@ -1,0 +1,7 @@
+Mean and std are needed in utils.py and need to be manually inserted.
+It is best to use the MSAD code in PyCharm or something identical, as this allows to work on the notebook, manipulate the .py files and excecute the .py files in the build in terminal all at once.
+Also, add the paths to the utils.py get_loaders function under dataset == 'custom'.
+
+After manually setting std, mean and the paths, call
+python main.py --dataset=custom --label=0 --epochs=0
+to replicate findings of the Thesis
